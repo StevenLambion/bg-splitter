@@ -6,10 +6,10 @@ Simple pane splitter for angular.js
 
 HTML:
 ```html
-<bg-splitter orientation="horizontal">
+<bg-splitter orientation="vertical" pos="75%">
 	<bg-pane min-size="100">Pane 1</bg-pane>
 	<bg-pane min-size="150">
-	  <bg-splitter orientation="vertical">
+	  <bg-splitter orientation="horizontal" pos="-200">
 	    <bg-pane min-size="50">Pane 2</bg-pane>
 	    <bg-pane min-size="50">Pane 3</bg-pane>
 	  </bg-splitter>

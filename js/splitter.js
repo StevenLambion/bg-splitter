@@ -5,12 +5,13 @@ angular.module('bgDirectives', [])
       replace: true,
       transclude: true,
       scope: {
-        orientation: '@'
+        orientation: '@',
+        pos: '@'
       },      
       template: '<div class="split-panes {{orientation}}" ng-transclude></div>',
       controller: function ($scope) {
         $scope.panes = [];
-        
+
         this.addPane = function(pane){
           if ($scope.panes.length > 1) 
             throw 'splitters can only have two panes';
@@ -28,27 +29,18 @@ angular.module('bgDirectives', [])
         var drag = false;
         
         pane1.elem.after(handler);
-        
-        element.bind('mousemove', function (ev) {
+
+        console.log('split link');
+        console.log(scope.pos);
+        console.log(element);
+
+        function resize (ev) {
           if (!drag) return;
           
           var bounds = element[0].getBoundingClientRect();
           var pos = 0;
           
           if (vertical) {
-
-            var height = bounds.bottom - bounds.top;
-            pos = ev.clientY - bounds.top;
-
-            if (pos < pane1Min) return;
-            if (height - pos < pane2Min) return;
-
-            handler.css('top', pos + 'px');
-            pane1.elem.css('height', pos + 'px');
-            pane2.elem.css('top', pos + 'px');
-      
-          } else {
-
             var width = bounds.right - bounds.left;
             pos = ev.clientX - bounds.left;
 
@@ -58,8 +50,21 @@ angular.module('bgDirectives', [])
             handler.css('left', pos + 'px');
             pane1.elem.css('width', pos + 'px');
             pane2.elem.css('left', pos + 'px');
+      
+          } else {
+            var height = bounds.bottom - bounds.top;
+            pos = ev.clientY - bounds.top;
+
+            if (pos < pane1Min) return;
+            if (height - pos < pane2Min) return;
+
+            handler.css('top', pos + 'px');
+            pane1.elem.css('height', pos + 'px');
+            pane2.elem.css('top', pos + 'px');
           }
-        });
+        }
+
+        element.bind('mousemove', resize);
     
         handler.bind('mousedown', function (ev) { 
           ev.preventDefault();
@@ -69,6 +74,57 @@ angular.module('bgDirectives', [])
         angular.element(document).bind('mouseup', function (ev) {
           drag = false;
         });
+
+        if (scope.pos)
+        {
+            // initialize handler position from pos attribute
+            var bounds = element[0].getBoundingClientRect();
+            var width = bounds.right - bounds.left;
+            var height = bounds.bottom - bounds.top;
+
+            var ev = {
+                clientX: 0,
+                clientY: 0
+            };
+
+            if (scope.pos.indexOf('%') != -1)
+            {
+                // handle percent
+                var posStr = scope.pos.substring(0, scope.pos.indexOf('%'));
+                var fraction = Number(posStr) / 100;
+
+                if (fraction < 0)
+                {
+                    fraction = 1 + fraction;
+                }
+
+                if (vertical)
+                {
+                    ev.clientX = width * fraction;
+                }
+                else
+                {
+                    ev.clientY = height * fraction;
+                }
+            }
+            else
+            {
+                // handle pixels
+                var pixels = parseInt(scope.pos);
+                if (vertical)
+                {
+                    ev.clientX = pixels < 0 ? width + pixels : pixels;
+                }
+                else
+                {
+                    ev.clientY = pixels < 0 ? height + pixels : pixels;
+                }
+            }
+
+            drag = true;
+            resize(ev);
+            drag = false;
+        }
       }
     };
   })
