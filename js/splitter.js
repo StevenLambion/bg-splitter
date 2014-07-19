@@ -30,10 +30,6 @@ angular.module('bgDirectives', [])
         
         pane1.elem.after(handler);
 
-        console.log('split link');
-        console.log(scope.pos);
-        console.log(element);
-
         function resize (ev) {
           if (!drag) return;
           
