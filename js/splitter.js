@@ -6,7 +6,8 @@ angular.module('bgDirectives', [])
       transclude: true,
       scope: {
         orientation: '@',
-        pos: '@'
+        pos: '@',
+        size: '@'
       },      
       template: '<div class="split-panes {{orientation}}" ng-transclude></div>',
       controller: function ($scope) {
@@ -29,6 +30,62 @@ angular.module('bgDirectives', [])
         var drag = false;
         
         pane1.elem.after(handler);
+
+
+        function getStyleRule(selector, sheet) {
+            var sheets = typeof sheet !== 'undefined' ? [sheet] : document.styleSheets;
+            for (var i = 0, l = sheets.length; i < l; i++) {
+                var sheet = sheets[i];
+                if( !sheet.cssRules ) { continue; }
+                for (var j = 0, k = sheet.cssRules.length; j < k; j++) {
+                    var rule = sheet.cssRules[j];
+                    if (rule.selectorText && rule.selectorText.split(',').indexOf(selector) !== -1) {
+                        return rule.style;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // get the size of the splitter from the pane2 border and its hitzone from split-handler
+        var borderStyle = getStyleRule('.split-panes.'+ scope.orientation +' > .split-pane2');
+
+        var border = vertical? borderStyle['border-left']: borderStyle['border-top'];
+        var sizePx = border.split(' ')[0];
+        var splitterSize = parseInt(sizePx.substring(0, sizePx.indexOf('px')));
+
+
+        var splitterStyle = getStyleRule('.split-panes.'+scope.orientation+' > .split-handler');
+        var ssSizePx = vertical ? splitterStyle['width'] : splitterStyle['height'];
+        var splitterHitSize = parseInt(ssSizePx.substring(0, ssSizePx.indexOf('px')));
+
+        // adjust handler size
+        if (scope.size)
+        {
+            splitterSize = Number(scope.size);
+            
+            if (vertical)
+            {
+                borderStyle['border-left-width'] = splitterSize + 'px';
+            }
+            else
+            {
+                borderStyle['border-top-width'] = splitterSize + 'px';
+            }
+        }
+
+        if (splitterHitSize < splitterSize)
+        {
+            splitterHitSize = splitterSize;
+            if (vertical)
+            {
+                splitterStyle['width'] = splitterHitSize + 'px';
+            }
+            else
+            {
+                splitterStyle['height'] = splitterHitSize + 'px';
+            }
+        }
 
         function resize (ev) {
           if (!drag) return;
@@ -77,6 +134,8 @@ angular.module('bgDirectives', [])
             var bounds = element[0].getBoundingClientRect();
             var width = bounds.right - bounds.left;
             var height = bounds.bottom - bounds.top;
+            var val = 0;
+            var range = vertical ? width : height;
 
             var ev = {
                 clientX: 0,
@@ -89,32 +148,23 @@ angular.module('bgDirectives', [])
                 var posStr = scope.pos.substring(0, scope.pos.indexOf('%'));
                 var fraction = Number(posStr) / 100;
 
-                if (fraction < 0)
-                {
-                    fraction = 1 + fraction;
-                }
-
-                if (vertical)
-                {
-                    ev.clientX = width * fraction;
-                }
-                else
-                {
-                    ev.clientY = height * fraction;
-                }
+                val = range * fraction;
+                val = val < 0 ? range + val - splitterSize : val;
             }
             else
             {
                 // handle pixels
                 var pixels = parseInt(scope.pos);
-                if (vertical)
-                {
-                    ev.clientX = pixels < 0 ? width + pixels : pixels;
-                }
-                else
-                {
-                    ev.clientY = pixels < 0 ? height + pixels : pixels;
-                }
+                val = pixels < 0 ? range + pixels - splitterSize: pixels;
+            }
+
+            if (vertical)
+            {
+                ev.clientX = val;
+            }
+            else
+            {
+                ev.clientY = val;
             }
 
             drag = true;
