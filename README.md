@@ -6,14 +6,19 @@ Simple pane splitter for angular.js
 
 HTML:
 ```html
-<bg-splitter orientation="vertical" pos="75%" size="6">
-	<bg-pane min-size="100">Pane 1</bg-pane>
-	<bg-pane min-size="150">
-	  <bg-splitter orientation="horizontal" pos="-200">
-	    <bg-pane min-size="50">Pane 2</bg-pane>
-	    <bg-pane min-size="50">Pane 3</bg-pane>
-	  </bg-splitter>
-	</bg-pane>
+<bg-splitter orientation="vertical" pos="25%" size="6" id="split1">
+    <bg-pane min-size="100" id="split1pane1"><div class="pane-container">Pane 1</div></bg-pane>
+    <bg-pane min-size="150" id="split1pane2">
+        <bg-splitter orientation="horizontal" pos="-200" size="3" id="split2">
+            <bg-pane min-size="100" id="split2pane1" class="pane-container">Pane 2</bg-pane>
+            <bg-pane min-size="150" id="split2pane2">
+                <bg-splitter orientation="vertical" pos="-300" id="split3">
+                    <bg-pane min-size="100" id="split3pane1" class="pane-container">Pane 3</bg-pane>
+                    <bg-pane min-size="150" id="split3pane2" class="pane-container">Pane 4</bg-pane>
+                </bg-splitter>
+            </bg-pane>
+        </bg-splitter>
+    </bg-pane>
 </bg-splitter>
 ```
 
@@ -21,7 +26,15 @@ Javascript:
 ```javascript
 var app = angular.module('myApp', ['bgDirectives']);
 ```
-
+CSS: 
+```css
+    .pane-container
+    {
+      padding: 10px;
+      box-sizing: border-box;
+    }
+  
+```
 ## Install using bower
 
 ```
