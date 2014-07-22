@@ -81,7 +81,7 @@ angular.module('bgDirectives', [])
 
                     var pos = scope.pos;
 
-                    if (pos.indexOf('%') != -1)
+                    if (pos != null && pos.indexOf('%') != -1)
                     {
                         // handle percent
                         var posStr = pos.substring(0, pos.indexOf('%'));
