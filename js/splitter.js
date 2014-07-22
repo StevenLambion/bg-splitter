@@ -81,13 +81,19 @@ angular.module('bgDirectives', [])
 
                     var pos = scope.pos;
 
-                    if (pos != null && pos.indexOf('%') != -1)
+                    if (pos == null)
+                    {
+                        pos = "50%";
+                    }
+                        
+                    
+                    if (pos.indexOf('%') != -1)
                     {
                         // handle percent
                         var posStr = pos.substring(0, pos.indexOf('%'));
                         var fraction = Number(posStr) / 100;
 
-                        val = range * fraction;
+                        val = range * fraction | 0;
                         val = val < 0 ? range + val - scope.splitterSize : val;
                     }
                     else
