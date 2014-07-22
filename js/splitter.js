@@ -247,7 +247,6 @@ angular.module('bgDirectives', [])
             {
                 this.scope = scope;
                 scope.id = attrs.id;
-                scope.test = Math.random();
             }],
             link: {
                 pre: function preLink(scope, element, attrs, bgSplitterCtrl)
