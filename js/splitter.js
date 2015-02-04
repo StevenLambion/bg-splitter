@@ -154,8 +154,8 @@ angular.module('bgDirectives', [])
                         var width = bounds.right - bounds.left;
                         pos = ev.clientX - bounds.left;
 
-                        if (pos < pane1Min) return;
-                        if (width - pos < pane2Min) return;
+                        if (pos < pane1Min) pos = pane1Min;
+                        if (width - pos < pane2Min) pos = width - pane2Min;
 
                         handler.css('left', pos + 'px');
                         pane1.elem.css('width', pos + 'px');
@@ -165,8 +165,8 @@ angular.module('bgDirectives', [])
                         var height = bounds.bottom - bounds.top;
                         pos = ev.clientY - bounds.top;
 
-                        if (pos < pane1Min) return;
-                        if (height - pos < pane2Min) return;
+                        if (pos < pane1Min) pos = pane1Min;
+                        if (height - pos < pane2Min) pos = height - pane2Min;
 
                         handler.css('top', pos + 'px');
                         pane1.elem.css('height', pos + 'px');
