@@ -1,5 +1,5 @@
 angular.module('bgDirectives', [])
-    .directive('bgSplitter', function() 
+    .directive('bgSplitter', function()
     {
         return {
             restrict: 'E',
@@ -10,16 +10,16 @@ angular.module('bgDirectives', [])
                 orientation: '@',
                 pos: '@',
                 size: '@'
-        },      
+        },
         template: '<div class="split-panes {{orientation}}" ng-transclude></div>',
-        controller: ['$scope', '$element', '$attrs', function (scope, element, attrs) 
+        controller: ['$scope', '$element', '$attrs', function (scope, element, attrs)
         {
             this.scope = scope;
             scope.panes = [];
 
             this.addPane = function(pane)
             {
-                if (scope.panes.length > 1) 
+                if (scope.panes.length > 1)
                 {
                    throw 'splitters can only have two panes';
                 }
@@ -27,20 +27,20 @@ angular.module('bgDirectives', [])
                 return scope.panes.length;
             };
 
-            scope.getStyleRule = function(selector, sheet) 
+            scope.getStyleRule = function(selector, sheet)
             {
                 var sheets = typeof sheet !== 'undefined' ? [sheet] : document.styleSheets;
-                for (var i = 0, l = sheets.length; i < l; i++) 
+                for (var i = 0, l = sheets.length; i < l; i++)
                 {
                     var sheet = sheets[i];
-                    if( !sheet.cssRules ) 
-                    { 
-                        continue; 
+                    if( !sheet.cssRules )
+                    {
+                        continue;
                     }
-                    for (var j = 0, k = sheet.cssRules.length; j < k; j++) 
+                    for (var j = 0, k = sheet.cssRules.length; j < k; j++)
                     {
                         var rule = sheet.cssRules[j];
-                        if (rule.selectorText && rule.selectorText.split(',').indexOf(selector) !== -1) 
+                        if (rule.selectorText && rule.selectorText.split(',').indexOf(selector) !== -1)
                         {
                             return rule.style;
                         }
@@ -85,8 +85,8 @@ angular.module('bgDirectives', [])
                     {
                         pos = "50%";
                     }
-                        
-                    
+
+
                     if (pos.indexOf('%') != -1)
                     {
                         // handle percent
@@ -130,7 +130,7 @@ angular.module('bgDirectives', [])
                     calcSizes(scope, width, height);
                 }
             },
-            post: function postLink (scope, element, attrs, bgPane) 
+            post: function postLink (scope, element, attrs, bgPane)
             {
                 var handler = angular.element('<div class="split-handler"></div>');
                 var pane1 = scope.panes[0];
@@ -142,14 +142,14 @@ angular.module('bgDirectives', [])
                 pane1.elem.after(handler);
 
 
-                function resize (ev) 
+                function resize (ev)
                 {
                     if (!drag) return;
 
                     var bounds = element[0].getBoundingClientRect();
                     var pos = 0;
 
-                    if (scope.isVertical) 
+                    if (scope.isVertical)
                     {
                         var width = bounds.right - bounds.left;
                         pos = ev.clientX - bounds.left;
@@ -176,25 +176,26 @@ angular.module('bgDirectives', [])
 
                 element.bind('mousemove', resize);
 
-                handler.bind('mousedown', function (ev) { 
+                handler.bind('mousedown', function (ev) {
                     ev.preventDefault();
-                    drag = true; 
+                    drag = true;
                 });
 
-                angular.element(document).bind('mouseup', function (ev) {
+                // Use .addEventListener() instead of JQuery-lite's .bind() so we get mouseup before anything eats it.
+                document.addEventListener('mouseup', function (ev) {
                     drag = false;
-                });
+                }, true);
 
                 // adjust the splitter size
                 if (scope.size)
                 {
                     if (scope.isVertical)
                     {
-                        pane2.elem[0].style['border-left-width'] = scope.splitterSize + 'px'; 
+                        pane2.elem[0].style['border-left-width'] = scope.splitterSize + 'px';
                     }
                     else
                     {
-                        pane2.elem[0].style['border-top-width'] = scope.splitterSize + 'px'; 
+                        pane2.elem[0].style['border-top-width'] = scope.splitterSize + 'px';
                     }
                 }
 
@@ -216,7 +217,7 @@ angular.module('bgDirectives', [])
                 }
 
                 // initialize splitter and pane positions
-                if (scope.isVertical) 
+                if (scope.isVertical)
                 {
                     var startX = scope.startX;
                     if (startX < pane1Min) return;
