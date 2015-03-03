@@ -12,7 +12,7 @@ angular.module('bgDirectives', [])
                 size: '@'
         },
         template: '<div class="split-panes {{orientation}}" ng-transclude></div>',
-        controller: ['$scope', '$element', '$attrs', function (scope, element, attrs)
+        controller: ['$scope', function (scope)
         {
             this.scope = scope;
             scope.panes = [];
@@ -32,7 +32,7 @@ angular.module('bgDirectives', [])
                 var sheets = typeof sheet !== 'undefined' ? [sheet] : document.styleSheets;
                 for (var i = 0, l = sheets.length; i < l; i++)
                 {
-                    var sheet = sheets[i];
+                    sheet = sheets[i];
                     if( !sheet.cssRules )
                     {
                         continue;
@@ -47,7 +47,7 @@ angular.module('bgDirectives', [])
                     }
                 }
                 return null;
-            }
+            };
 
             var orientation = this.scope.orientation;
             var isVertical = this.scope.isVertical = orientation == 'vertical';
@@ -81,7 +81,7 @@ angular.module('bgDirectives', [])
 
                     var pos = scope.pos;
 
-                    if (pos == null)
+                    if (pos === null)
                     {
                         pos = "50%";
                     }
@@ -116,17 +116,19 @@ angular.module('bgDirectives', [])
                 }
 
                 // calculate the width and height of each pane
+                var width;
+                var height;
                 if (bgPane)
                 {
-                    var width = bgPane.scope.paneSize[0];
-                    var height = bgPane.scope.paneSize[1];
+                    width = bgPane.scope.paneSize[0];
+                    height = bgPane.scope.paneSize[1];
                     calcSizes(scope, width, height);
                 }
                 else
                 {
                     var bounds = element[0].getBoundingClientRect();
-                    var width = bounds.right - bounds.left;
-                    var height = bounds.bottom - bounds.top;
+                    width = bounds.right - bounds.left;
+                    height = bounds.bottom - bounds.top;
                     calcSizes(scope, width, height);
                 }
             },
@@ -200,7 +202,7 @@ angular.module('bgDirectives', [])
                 }
 
                 var splitterStyle = scope.getStyleRule('.split-panes.'+ scope.orientation +' > .split-handler');
-                var ssSizePx = scope.isVertical ? splitterStyle['width'] : splitterStyle['height'];
+                var ssSizePx = scope.isVertical ? splitterStyle.width : splitterStyle.height;
                 var splitterHitSize = parseInt(ssSizePx.substring(0, ssSizePx.indexOf('px')));
 
                 if (splitterHitSize < scope.splitterSize)
@@ -208,11 +210,11 @@ angular.module('bgDirectives', [])
                     splitterHitSize = scope.splitterSize;
                     if (scope.isVertical)
                     {
-                        handler[0].style['width'] = splitterHitSize + 'px';
+                        handler[0].style.width = splitterHitSize + 'px';
                     }
                     else
                     {
-                        handler[0].style['height'] = splitterHitSize + 'px';
+                        handler[0].style.height = splitterHitSize + 'px';
                     }
                 }
 
@@ -250,7 +252,7 @@ angular.module('bgDirectives', [])
                 minSize: '='
             },
             template: '<div class="split-pane{{index}}" ng-transclude></div>',
-            controller: ['$scope', '$element', '$attrs',function(scope, element, attrs)
+            controller: ['$scope', '$attrs',function(scope, attrs)
             {
                 this.scope = scope;
                 scope.id = attrs.id;
@@ -263,9 +265,7 @@ angular.module('bgDirectives', [])
                     scope.id = attrs.id;
                     scope.index = bgSplitterCtrl.addPane(scope);
                     scope.paneSize = bgSplitterCtrl.scope.paneSizes[scope.index - 1];
-                },
-                post: function(scope, element, attrs, bgSplitterCtrl) {
                 }
             }
-        }
+        };
     });
