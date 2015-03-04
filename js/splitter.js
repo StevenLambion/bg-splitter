@@ -1,6 +1,80 @@
-/* global angular:true, document:true */
+/* global angular:true */
 angular.module('bgDirectives', [])
-    .directive('bgSplitter', function()
+    .service('bgSplitterStyles', ['$document', '$q', function($document, $q)
+    {
+        var styleRules = {
+            horizontal: {
+                splitter: {},
+                border: {}
+            },
+            vertical: {
+                splitter: {},
+                border: {}
+            }
+        };
+
+        var rulesLoadedPromise = $q(function(resolve)
+        {
+            // Wait until stylesheets have loaded before attempting to parse them.
+            $document.on('load', function()
+            {
+                var styleRulePatterns = {
+                    horizontal: {
+                        splitter: /\.split-panes\.horizontal\s*>\s*\.split-handler\b/,
+                        border: /\.split-panes\.horizontal\s*>\s*\.split-pane2\b/
+                    },
+                    vertical: {
+                        splitter: /\.split-panes\.vertical\s*>\s*\.split-handler\b/,
+                        border: /\.split-panes\.vertical\s*>\s*\.split-pane2\b/
+                    }
+                };
+
+                // Iterate over the rules in each stylesheet, finding ones that match splitters and borders.
+                var sheets = $document[0].styleSheets;
+                for(var i = 0, l = sheets.length; i < l; i++)
+                {
+                    var sheet = sheets[i];
+                    if(!sheet.cssRules)
+                    {
+                        continue;
+                    }
+                    for(var j = 0, cssRulesLen = sheet.cssRules.length; j < cssRulesLen; j++)
+                    {
+                        var rule = sheet.cssRules[j];
+                        if(!rule.selectorText)
+                        {
+                            continue;
+                        }
+                        var selectors = rule.selectorText.split(',');
+                        for(var k = 0, selectorsLen = sheet.cssRules.length; k < selectorsLen; k++)
+                        {
+                            var selector = selectors[j];
+                            if(styleRulePatterns.horizontal.splitter.test(selector))
+                                { styleRulePatterns.horizontal.splitter = rule.style; }
+                            else if(styleRulePatterns.horizontal.border.test(selector))
+                                { styleRulePatterns.horizontal.border = rule.style; }
+                            else if(styleRulePatterns.vertical.splitter.test(selector))
+                                { styleRulePatterns.vertical.splitter = rule.style; }
+                            else if(styleRulePatterns.vertical.border.test(selector))
+                                { styleRulePatterns.vertical.border = rule.style; }
+                        }
+                    }
+                }
+
+                resolve(styleRules);
+            });
+        });
+
+        return {
+            // The loaded style rules, or placeholder objects if styles haven't finished loading yet
+            rules: styleRules,
+
+            // A promise for when style rules have finished loading
+            loaded: rulesLoadedPromise
+        };
+    }])
+
+    .directive('bgSplitter', ['$document', 'bgSplitterStyles', function($document, styles)
     {
         return {
             restrict: 'E',
@@ -30,56 +104,28 @@ angular.module('bgDirectives', [])
                 return self.panes.length;
             };
 
-            this.getStyleRule = function(selectorPattern)
-            {
-                if(typeof selectorPattern == 'string')
-                {
-                    selectorPattern = new RegExp(selectorPattern);
-                }
-                var sheets = document.styleSheets;
-                for (var i = 0, l = sheets.length; i < l; i++)
-                {
-                    var sheet = sheets[i];
-                    if( !sheet.cssRules )
-                    {
-                        continue;
-                    }
-                    for (var j = 0, cssRulesLen = sheet.cssRules.length; j < cssRulesLen; j++)
-                    {
-                        var rule = sheet.cssRules[j];
-                        if(!rule.selectorText)
-                        {
-                            continue;
-                        }
-                        var selectors = rule.selectorText.split(',');
-                        for(var k = 0, selectorsLen = sheet.cssRules.length; k < selectorsLen; k++)
-                        {
-                            if(selectorPattern.test(selectors[j]))
-                            {
-                                return rule.style;
-                            }
-                        }
-                    }
-                }
-                return null;
-            };
-
             var orientation = this.scope.orientation;
             var isVertical = this.scope.isVertical = orientation == 'vertical';
 
-            // get the size of the splitter from the pane2 border and its hitzone from split-handler
-            var borderStyle = this.getStyleRule('\\.split-panes\\.'+ orientation +'\\s*>\\s*\\.split-pane2\\b') || {};
-            var border = (isVertical? borderStyle['border-left']: borderStyle['border-top']) || '';
-            var sizePx = border.split(' ')[0];
-            var splitterSize = parseInt(sizePx.substring(0, sizePx.indexOf('px')));
-
-            // adjust handler size
-            if (scope.size)
+            function onStyleChange(rules)
             {
-                splitterSize = Number(scope.size);
+                // get the size of the splitter from the pane2 border and its hitzone from split-handler
+                var borderStyle = rules[orientation].border;
+                var border = (isVertical? borderStyle['border-left']: borderStyle['border-top']) || '';
+                var sizePx = border.split(' ')[0];
+                var splitterSize = parseInt(sizePx.substring(0, sizePx.indexOf('px')));
+
+                // adjust handler size
+                if (scope.size)
+                {
+                    splitterSize = Number(scope.size);
+                }
+
+                scope.splitterSize = splitterSize;
             }
 
-            scope.splitterSize = splitterSize;
+            styles.loaded.then(onStyleChange);
+            onStyleChange(styles.rules);
         }],
         link: {
             pre: function preLink(scope, element, attrs, bgPane)
@@ -195,7 +241,7 @@ angular.module('bgDirectives', [])
                 });
 
                 // Use .addEventListener() instead of JQuery-lite's .bind() so we get mouseup before anything eats it.
-                document.addEventListener('mouseup', function () {
+                $document[0].addEventListener('mouseup', function () {
                     drag = false;
                 }, true);
 
@@ -212,47 +258,54 @@ angular.module('bgDirectives', [])
                     }
                 }
 
-                var splitterStyle = self.getStyleRule('.split-panes.'+ scope.orientation +' > .split-handler') || {};
-                var ssSizePx = (scope.isVertical ? splitterStyle.width : splitterStyle.height) || '';
-                var splitterHitSize = parseInt(ssSizePx.substring(0, ssSizePx.indexOf('px')));
-
-                if (splitterHitSize < scope.splitterSize)
+                function onStyleChange(rules)
                 {
-                    splitterHitSize = scope.splitterSize;
+                    var splitterStyle = rules[scope.orientation].border;
+
+                    var ssSizePx = (scope.isVertical ? splitterStyle.width : splitterStyle.height) || '';
+                    var splitterHitSize = parseInt(ssSizePx.substring(0, ssSizePx.indexOf('px')));
+
+                    if (splitterHitSize < scope.splitterSize)
+                    {
+                        splitterHitSize = scope.splitterSize;
+                        if (scope.isVertical)
+                        {
+                            handler[0].style.width = splitterHitSize + 'px';
+                        }
+                        else
+                        {
+                            handler[0].style.height = splitterHitSize + 'px';
+                        }
+                    }
+
+                    // initialize splitter and pane positions
                     if (scope.isVertical)
                     {
-                        handler[0].style.width = splitterHitSize + 'px';
-                    }
-                    else
-                    {
-                        handler[0].style.height = splitterHitSize + 'px';
+                        var startX = scope.startX;
+                        if (startX < pane1Min) return;
+                        if (scope.width - startX < pane2Min) return;
+
+                        handler.css('left', startX + 'px');
+                        pane1.elem.css('width', startX + 'px');
+                        pane2.elem.css('left', startX + 'px');
+
+                    } else {
+                        var startY = scope.startY;
+                        if (startY < pane1Min) return;
+                        if (scope.height - startY < pane2Min) return;
+
+                        handler.css('top', startY + 'px');
+                        pane1.elem.css('height', startY + 'px');
+                        pane2.elem.css('top', startY + 'px');
                     }
                 }
 
-                // initialize splitter and pane positions
-                if (scope.isVertical)
-                {
-                    var startX = scope.startX;
-                    if (startX < pane1Min) return;
-                    if (scope.width - startX < pane2Min) return;
-
-                    handler.css('left', startX + 'px');
-                    pane1.elem.css('width', startX + 'px');
-                    pane2.elem.css('left', startX + 'px');
-
-                } else {
-                    var startY = scope.startY;
-                    if (startY < pane1Min) return;
-                    if (scope.height - startY < pane2Min) return;
-
-                    handler.css('top', startY + 'px');
-                    pane1.elem.css('height', startY + 'px');
-                    pane2.elem.css('top', startY + 'px');
-                }
+                styles.loaded.then(onStyleChange);
+                onStyleChange(styles.rules);
             }// end postLink
         }
     };
-  })
+  }])
   .directive('bgPane', function () {
       return {
             restrict: 'E',
