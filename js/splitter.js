@@ -1,4 +1,6 @@
 /* global angular:true */
+"use strict";
+
 angular.module('bgDirectives', [])
     .service('bgSplitterStyles', ['$document', '$q', function($document, $q)
     {
