@@ -244,7 +244,10 @@ angular.module('bgDirectives', [])
 
                 // Use .addEventListener() instead of JQuery-lite's .bind() so we get mouseup before anything eats it.
                 $document[0].addEventListener('mouseup', function () {
-                    drag = false;
+                    if(drag) {
+                        scope.$broadcast('bgSplitter.resizeFinished');
+                        drag = false;
+                    }
                 }, true);
 
                 // adjust the splitter size
