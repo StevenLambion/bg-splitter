@@ -22,11 +22,11 @@ angular.module('bgDirectives', [])
             {
                 var styleRulePatterns = {
                     horizontal: {
-                        splitter: /\.split-panes\.horizontal\s*>\s*\.split-handler\b/,
+                        splitter: /\.split-panes\.horizontal\s*>\s*\.split-handle\b/,
                         border: /\.split-panes\.horizontal\s*>\s*\.split-pane2\b/
                     },
                     vertical: {
-                        splitter: /\.split-panes\.vertical\s*>\s*\.split-handler\b/,
+                        splitter: /\.split-panes\.vertical\s*>\s*\.split-handle\b/,
                         border: /\.split-panes\.vertical\s*>\s*\.split-pane2\b/
                     }
                 };
@@ -111,13 +111,13 @@ angular.module('bgDirectives', [])
 
             function onStyleChange(rules)
             {
-                // get the size of the splitter from the pane2 border and its hitzone from split-handler
+                // get the size of the splitter from the pane2 border and its hitzone from split-handle
                 var borderStyle = rules[orientation].border;
                 var border = (isVertical? borderStyle['border-left']: borderStyle['border-top']) || '';
                 var sizePx = border.split(' ')[0];
                 var splitterSize = parseInt(sizePx.substring(0, sizePx.indexOf('px')));
 
-                // adjust handler size
+                // adjust handle size
                 if (scope.size)
                 {
                     splitterSize = Number(scope.size);
@@ -193,14 +193,14 @@ angular.module('bgDirectives', [])
             {
                 var self = scope.bgSplitterCtrl;
 
-                var handler = angular.element('<div class="split-handler"></div>');
+                var handle = angular.element('<div class="split-handle"></div>');
                 var pane1 = self.panes[0];
                 var pane2 = self.panes[1];
                 var pane1Min = pane1.minSize || 0;
                 var pane2Min = pane2.minSize || 0;
                 var drag = false;
 
-                pane1.elem.after(handler);
+                pane1.elem.after(handle);
 
 
                 function resize (ev)
@@ -218,7 +218,7 @@ angular.module('bgDirectives', [])
                         if (pos < pane1Min) pos = pane1Min;
                         if (width - pos < pane2Min) pos = width - pane2Min;
 
-                        handler.css('left', pos + 'px');
+                        handle.css('left', pos + 'px');
                         pane1.elem.css('width', pos + 'px');
                         pane2.elem.css('left', pos + 'px');
 
@@ -229,7 +229,7 @@ angular.module('bgDirectives', [])
                         if (pos < pane1Min) pos = pane1Min;
                         if (height - pos < pane2Min) pos = height - pane2Min;
 
-                        handler.css('top', pos + 'px');
+                        handle.css('top', pos + 'px');
                         pane1.elem.css('height', pos + 'px');
                         pane2.elem.css('top', pos + 'px');
                     }
@@ -237,7 +237,7 @@ angular.module('bgDirectives', [])
 
                 element.bind('mousemove', resize);
 
-                handler.bind('mousedown', function (ev) {
+                handle.bind('mousedown', function (ev) {
                     ev.preventDefault();
                     drag = true;
                 });
@@ -275,11 +275,11 @@ angular.module('bgDirectives', [])
                         splitterHitSize = scope.splitterSize;
                         if (scope.isVertical)
                         {
-                            handler[0].style.width = splitterHitSize + 'px';
+                            handle[0].style.width = splitterHitSize + 'px';
                         }
                         else
                         {
-                            handler[0].style.height = splitterHitSize + 'px';
+                            handle[0].style.height = splitterHitSize + 'px';
                         }
                     }
 
@@ -290,7 +290,7 @@ angular.module('bgDirectives', [])
                         if (startX < pane1Min) return;
                         if (scope.width - startX < pane2Min) return;
 
-                        handler.css('left', startX + 'px');
+                        handle.css('left', startX + 'px');
                         pane1.elem.css('width', startX + 'px');
                         pane2.elem.css('left', startX + 'px');
 
@@ -299,7 +299,7 @@ angular.module('bgDirectives', [])
                         if (startY < pane1Min) return;
                         if (scope.height - startY < pane2Min) return;
 
-                        handler.css('top', startY + 'px');
+                        handle.css('top', startY + 'px');
                         pane1.elem.css('height', startY + 'px');
                         pane2.elem.css('top', startY + 'px');
                     }
