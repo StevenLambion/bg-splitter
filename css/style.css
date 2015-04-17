@@ -1,4 +1,4 @@
-.split-panes 
+.split-panes
 {
   left: 0px;
   right: 0px;
@@ -7,19 +7,19 @@
   position: absolute;
 }
 
-.split-panes > .split-handler 
+.split-panes > .split-handle
 {
   background: transparent;
   position: absolute;
   z-index: 999;
 }
 
-/* Vertical */ 
+/* Vertical */
 
-.split-panes.vertical > .split-handler
+.split-panes.vertical > .split-handle
 {
   width: 4px;
-  top: 0px; 
+  top: 0px;
   left: 50%;
   bottom: 0px;
   cursor: ew-resize;
@@ -34,7 +34,7 @@
 
 .split-panes.vertical > .split-pane1
 {
-  width: 50%; 
+  width: 50%;
 }
 
 .split-panes.vertical > .split-pane2
@@ -47,10 +47,10 @@
 
 /* Horizontal */
 
-.split-panes.horizontal > .split-handler
+.split-panes.horizontal > .split-handle
 {
   height: 4px;
-  top: 50%; 
+  top: 50%;
   left: 0px;
   right: 0px;
   cursor: ns-resize;
@@ -65,7 +65,7 @@
 
 .split-panes.horizontal > .split-pane1
 {
-  height: 50%; 
+  height: 50%;
 }
 
 .split-panes.horizontal > .split-pane2
